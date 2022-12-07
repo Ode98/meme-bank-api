@@ -1,0 +1,4 @@
+assets
+config/key.json
+.env
+node_modules
