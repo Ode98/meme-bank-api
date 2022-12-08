@@ -1,9 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const multer = require("multer");
-const uploadImage = require("./helpers/helpers");
 const Meme = require("./models/meme");
-
+const uploadImage = require("./helpers/helpers");
 const app = express();
 
 const multerMid = multer({
@@ -24,7 +23,20 @@ app.get("/api/memes", (request, response) => {
   });
 });
 
-app.post("/uploads", async (req, res, next) => {
+app.post("/api/memes", async (req, res) => {
+  try {
+    const meme = new Meme(req.body);
+    const savedMeme = await meme.save();
+    res.status(200).json({
+      message: "Created a meme succecfully",
+      data: savedMeme,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/images", async (req, res, next) => {
   try {
     const myFile = req.file;
     const imageUrl = await uploadImage(myFile);
@@ -40,7 +52,7 @@ app.post("/uploads", async (req, res, next) => {
 app.use((err, req, res, next) => {
   res.status(500).json({
     error: err,
-    message: "Internal server error!",
+    message: err,
   });
   next();
 });
