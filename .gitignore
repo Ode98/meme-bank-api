@@ -2,3 +2,6 @@ assets
 config/key.json
 .env
 node_modules
+tesse.js
+antman.webp
+eng.traineddata

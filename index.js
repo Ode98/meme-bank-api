@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 const Meme = require("./models/meme");
 const uploadImage = require("./helpers/helpers");
+const detectText = require("./textFromImage");
 const app = express();
 
 const multerMid = multer({
@@ -23,9 +24,11 @@ app.get("/api/memes", (request, response) => {
   });
 });
 
-app.post("/api/memes", async (req, res) => {
+app.post("/api/memes", async (req, res, next) => {
   try {
-    const meme = new Meme(req.body);
+    const url = req.body.url;
+    const tags = await detectText(url);
+    const meme = new Meme({ ...req.body, tags });
     const savedMeme = await meme.save();
     res.status(200).json({
       message: "Created a meme succecfully",
