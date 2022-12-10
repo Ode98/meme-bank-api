@@ -1,6 +1,7 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 const url = process.env.MONGODB_URI;
+mongoose.set("strictQuery", false);
 
 console.log("connecting to", url);
 mongoose
@@ -13,7 +14,7 @@ mongoose
   });
 
 const memeSchema = new mongoose.Schema({
-  title: String,
+  // title: String,
   url: String,
   tags: [{ type: String }],
 });

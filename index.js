@@ -26,6 +26,7 @@ app.get("/api/memes", (request, response) => {
 
 app.post("/api/memes", async (req, res, next) => {
   try {
+    console.log(req.body);
     const url = req.body.url;
     const tags = await detectText(url);
     const meme = new Meme({ ...req.body, tags });
