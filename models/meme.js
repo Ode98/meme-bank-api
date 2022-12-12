@@ -14,9 +14,9 @@ mongoose
   });
 
 const memeSchema = new mongoose.Schema({
-  // title: String,
   url: String,
-  tags: [{ type: String }],
+  // tags: [{ type: String }],
+  tags: String,
 });
 
 memeSchema.set("toJSON", {
