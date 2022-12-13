@@ -15,8 +15,11 @@ mongoose
 
 const memeSchema = new mongoose.Schema({
   url: String,
-  // tags: [{ type: String }],
   tags: String,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
 });
 
 memeSchema.set("toJSON", {

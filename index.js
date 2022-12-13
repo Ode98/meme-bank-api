@@ -1,9 +1,14 @@
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const multer = require("multer");
 const Meme = require("./models/meme");
+const User = require("./models/user");
 const uploadImage = require("./helpers/helpers");
 const detectText = require("./textFromImage");
+const loginRouter = require("./controllers/login");
+const bcrypt = require("bcrypt");
+const { response } = require("express");
 const app = express();
 
 const multerMid = multer({
@@ -53,6 +58,34 @@ app.post("/api/images", async (req, res, next) => {
   }
 });
 
+app.post("/api/users", async (req, res, next) => {
+  const { username, password } = req.body;
+  const saltRounds = 10;
+  const passwordHash = await bcrypt.hash(password, saltRounds);
+  const user = new User({
+    username,
+    passwordHash,
+  });
+  if (password.length < 5) {
+    res
+      .status(400)
+      .json({ error: "Password must be at least 5 characters long" });
+  }
+  try {
+    const savedUser = await user.save();
+    res.status(201).json(savedUser);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/users", async (req, res) => {
+  const users = await User.find({});
+  response.json(users);
+});
+
+app.use("/api/login", loginRouter);
+
 app.use((err, req, res, next) => {
   res.status(500).json({
     error: err,
@@ -61,6 +94,6 @@ app.use((err, req, res, next) => {
   next();
 });
 
-app.listen(3003, () => {
+app.listen(process.env.PORT, () => {
   console.log("app now listening for requests!!!");
 });
