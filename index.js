@@ -8,6 +8,7 @@ const uploadImage = require("./helpers/helpers");
 const detectText = require("./textFromImage");
 const loginRouter = require("./controllers/login");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const { response } = require("express");
 const app = express();
 
@@ -29,13 +30,29 @@ app.get("/api/memes", (request, response) => {
   });
 });
 
+const getTokenFrom = (request) => {
+  const authorization = request.get("authorization");
+  if (authorization && authorization.toLowerCase().startsWith("bearer ")) {
+    return authorization.substring(7);
+  }
+  return null;
+};
+
 app.post("/api/memes", async (req, res, next) => {
   try {
-    console.log(req.body);
+    const token = getTokenFrom(req);
+    const decodedToken = jwt.verify(token, process.env.SECRET);
+    if (!token || !decodedToken.id) {
+      return response.status(401).json({ error: "token missing or invalid" });
+    }
+    const user = await User.findById(decodedToken.id);
     const url = req.body.url;
     const tags = await detectText(url);
-    const meme = new Meme({ ...req.body, tags });
+    const meme = new Meme({ ...req.body, tags, user });
     const savedMeme = await meme.save();
+    user.memes = user.memes.concat(savedMeme._id);
+    await user.save();
+
     res.status(200).json({
       message: "Created a meme succecfully",
       data: savedMeme,
