@@ -62,6 +62,14 @@ app.post("/api/memes", async (req, res, next) => {
   }
 });
 
+app.put("/api/memes/:id", async (req, res) => {
+  const meme = req.body;
+  const updatedMeme = await Meme.findByIdAndUpdate(req.params.id, meme, {
+    new: true,
+  });
+  res.json(updatedMeme.toJSON());
+});
+
 app.post("/api/images", async (req, res, next) => {
   try {
     const myFile = req.file;
