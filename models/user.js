@@ -10,6 +10,12 @@ const userSchema = mongoose.Schema({
       ref: "Meme",
     },
   ],
+  likedMemes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Meme",
+    },
+  ],
 });
 
 userSchema.set("toJSON", {

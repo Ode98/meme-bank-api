@@ -24,10 +24,14 @@ app.use(multerMid.single("file"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.get("/api/memes", (request, response) => {
-  Meme.find({}).then((memes) => {
-    response.json(memes);
-  });
+app.get("/api/memes", (request, response, next) => {
+  try {
+    Meme.find({}).then((memes) => {
+      response.json(memes);
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 const getTokenFrom = (request) => {
@@ -62,12 +66,30 @@ app.post("/api/memes", async (req, res, next) => {
   }
 });
 
-app.put("/api/memes/:id", async (req, res) => {
-  const meme = req.body;
-  const updatedMeme = await Meme.findByIdAndUpdate(req.params.id, meme, {
-    new: true,
-  });
-  res.json(updatedMeme.toJSON());
+app.put("/api/memes/:id", async (req, res, next) => {
+  try {
+    const token = getTokenFrom(req);
+    const memeId = req.params.id;
+    const decodedToken = jwt.verify(token, process.env.SECRET);
+    if (!token || !decodedToken.id) {
+      return response.status(401).json({ error: "token missing or invalid" });
+    }
+    const user = await User.findById(decodedToken.id);
+    const foundMeme = await Meme.findById(memeId);
+    const users = foundMeme.likedUsers;
+    if (users.includes(user._id)) {
+      return res.status(409).json({ error: "User has already liked the meme" });
+    }
+    const meme = { ...req.body, likedUsers: users.concat(user) };
+    user.likedMemes = user.likedMemes.concat(foundMeme);
+    await user.save();
+    const updatedMeme = await Meme.findByIdAndUpdate(req.params.id, meme, {
+      new: true,
+    });
+    res.json(updatedMeme.toJSON());
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post("/api/images", async (req, res, next) => {
@@ -107,6 +129,16 @@ app.post("/api/users", async (req, res, next) => {
 app.get("/api/users", async (req, res) => {
   const users = await User.find({});
   response.json(users);
+});
+
+app.get("/api/users/likedMemes", async (req, res) => {
+  const token = getTokenFrom(req);
+  const decodedToken = jwt.verify(token, process.env.SECRET);
+  if (!token || !decodedToken.id) {
+    return response.status(401).json({ error: "token missing or invalid" });
+  }
+  const user = await User.findById(decodedToken.id);
+  res.json(user.likedMemes);
 });
 
 app.use("/api/login", loginRouter);
