@@ -118,6 +118,11 @@ app.post("/api/users", async (req, res, next) => {
       .status(400)
       .json({ error: "Password must be at least 5 characters long" });
   }
+  const existingUser = await User.findOne({ username });
+  if (existingUser) {
+    res.status(409).json({ error: "Username already exists" });
+    return;
+  }
   try {
     const savedUser = await user.save();
     res.status(201).json(savedUser);
