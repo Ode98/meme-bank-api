@@ -8,11 +8,6 @@ const memesRouter = require("./controllers/memes");
 const usersRouter = require("./controllers/users");
 const imagesRouter = require("./controllers/images");
 
-app.use("/api/memes", memesRouter);
-app.use("/api/login", loginRouter);
-app.use("/api/users", usersRouter);
-app.use("/api/images", imagesRouter);
-
 const multerMid = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -32,5 +27,10 @@ app.use((err, req, res, next) => {
   });
   next();
 });
+
+app.use("/api/memes", memesRouter);
+app.use("/api/login", loginRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/images", imagesRouter);
 
 module.exports = app;
